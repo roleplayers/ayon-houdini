@@ -388,6 +388,71 @@ def get_schema_type_names(type_name: str) -> List[str]:
     return results
 
 
+def fix_explicit_api_schemas(filepath):
+    """Fix explicit apiSchemas in a USD layer by converting to prepend.
+
+    When Houdini's USD ROP flattens implicit layers on save, any
+    ``apiSchemas`` opinions that were composed across multiple layers get
+    resolved into an *explicit* ``SdfListOp`` (i.e. ``apiSchemas = [...]``
+    instead of ``prepend apiSchemas = [...]``).
+
+    An explicit list op replaces *all* weaker opinions during USD composition,
+    which can unintentionally strip apiSchemas defined in weaker layers (e.g.
+    a model layer).  For looks this commonly breaks ``MaterialBindingAPI`` on
+    ``GeomSubset`` prims used for per-face material assignments.
+
+    This function opens the layer at *filepath*, finds every prim spec whose
+    ``apiSchemas`` field uses an explicit list op, and converts it to an
+    equivalent **prepend** list op so that weaker opinions are preserved
+    during composition.
+
+    Args:
+        filepath (str): Path to the USD file to fix.
+
+    Returns:
+        bool: True if any specs were modified, False otherwise.
+
+    """
+    layer = Sdf.Layer.FindOrOpen(filepath)
+    if layer is None:
+        log.warning("fix_explicit_api_schemas: cannot open %s", filepath)
+        return False
+
+    modified = False
+
+    def _visit(path):
+        nonlocal modified
+        if not path.IsPrimPath():
+            return
+        spec = layer.GetPrimAtPath(path)
+        if spec is None:
+            return
+        if not spec.HasInfo("apiSchemas"):
+            return
+        list_op = spec.GetInfo("apiSchemas")
+        # Only fix explicit list ops – prepend/append are fine
+        if not list_op.IsExplicit():
+            return
+        items = list_op.IsExplicit() and list_op.GetExplicitItems()
+        if not items:
+            return
+        fixed = Sdf.TokenListOp()
+        fixed.prependedItems = items
+        spec.SetInfo("apiSchemas", fixed)
+        modified = True
+
+    layer.Traverse("/", _visit)
+
+    if modified:
+        layer.Save()
+        log.info(
+            "fix_explicit_api_schemas: converted explicit apiSchemas "
+            "to prepend in %s", filepath
+        )
+
+    return modified
+
+
 def get_ayon_entity_uri_from_representation_context(context: dict) -> str:
     """Resolve AYON Entity URI from representation context.
 

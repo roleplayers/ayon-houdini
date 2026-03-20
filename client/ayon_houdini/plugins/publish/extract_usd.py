@@ -8,7 +8,7 @@ from ayon_core.pipeline.entity_uri import construct_ayon_entity_uri
 from ayon_core.pipeline.publish.lib import get_instance_expected_output_path
 from ayon_houdini.api import plugin
 from ayon_houdini.api.lib import render_rop
-from ayon_houdini.api.usd import remap_paths
+from ayon_houdini.api.usd import remap_paths, fix_explicit_api_schemas
 
 import hou
 
@@ -50,6 +50,13 @@ class ExtractUSD(plugin.HoudiniExtractorPlugin):
 
         if not os.path.exists(output):
             PublishError(f"Output does not exist: {output}")
+
+        # Fix explicit apiSchemas for look products. The USD ROP flattens
+        # implicit layers which can convert composed prepend apiSchemas
+        # into explicit list ops, breaking material bindings on GeomSubsets.
+        if "look" in instance.data.get("families", []):
+            if fix_explicit_api_schemas(output):
+                self.log.info("Fixed explicit apiSchemas in look output")
 
         if "representations" not in instance.data:
             instance.data["representations"] = []
