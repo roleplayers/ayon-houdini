@@ -49,7 +49,7 @@ class ExtractUSD(plugin.HoudiniExtractorPlugin):
             render_rop(ropnode)
 
         if not os.path.exists(output):
-            raise PublishError(f"Output does not exist: {output}")
+            PublishError(f"Output does not exist: {output}")
 
         if "representations" not in instance.data:
             instance.data["representations"] = []
@@ -61,6 +61,17 @@ class ExtractUSD(plugin.HoudiniExtractorPlugin):
             "stagingDir": staging_dir,
         }
         instance.data["representations"].append(representation)
+
+        self.log.debug(
+            "DIAG: Added 'usd' representation to instance %s "
+            "(folderPath=%s, productName=%s, families=%s, "
+            "num_representations=%d)",
+            instance,
+            instance.data.get("folderPath"),
+            instance.data.get("productName"),
+            instance.data.get("families"),
+            len(instance.data.get("representations", []))
+        )
 
         # Fix explicit apiSchemas for look products. The USD ROP flattens
         # implicit layers which can convert composed prepend apiSchemas
