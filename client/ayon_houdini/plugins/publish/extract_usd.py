@@ -49,14 +49,7 @@ class ExtractUSD(plugin.HoudiniExtractorPlugin):
             render_rop(ropnode)
 
         if not os.path.exists(output):
-            PublishError(f"Output does not exist: {output}")
-
-        # Fix explicit apiSchemas for look products. The USD ROP flattens
-        # implicit layers which can convert composed prepend apiSchemas
-        # into explicit list ops, breaking material bindings on GeomSubsets.
-        if "look" in instance.data.get("families", []):
-            if fix_explicit_api_schemas(output):
-                self.log.info("Fixed explicit apiSchemas in look output")
+            raise PublishError(f"Output does not exist: {output}")
 
         if "representations" not in instance.data:
             instance.data["representations"] = []
@@ -68,6 +61,19 @@ class ExtractUSD(plugin.HoudiniExtractorPlugin):
             "stagingDir": staging_dir,
         }
         instance.data["representations"].append(representation)
+
+        # Fix explicit apiSchemas for look products. The USD ROP flattens
+        # implicit layers which can convert composed prepend apiSchemas
+        # into explicit list ops, breaking material bindings on GeomSubsets.
+        if "look" in instance.data.get("families", []):
+            try:
+                if fix_explicit_api_schemas(output):
+                    self.log.info("Fixed explicit apiSchemas in look output")
+            except Exception:
+                self.log.warning(
+                    "Failed to fix explicit apiSchemas in look output",
+                    exc_info=True
+                )
 
     def get_source_to_publish_paths(self,
                                     context):
