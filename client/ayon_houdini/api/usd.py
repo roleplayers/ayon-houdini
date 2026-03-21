@@ -413,12 +413,31 @@ def fix_explicit_api_schemas(filepath):
         bool: True if any specs were modified, False otherwise.
 
     """
-    layer = Sdf.Layer.FindOrOpen(filepath)
+    # Use OpenAsAnonymous to get an isolated copy of the layer.  Using
+    # FindOrOpen would return a layer from USD's global registry which,
+    # inside Houdini, may be the *live* cached layer held by the USD ROP.
+    # Modifying and saving a live cached layer triggers change notifications
+    # that can corrupt downstream publish plugin state.
+    layer = Sdf.Layer.OpenAsAnonymous(filepath)
     if layer is None:
         log.warning("fix_explicit_api_schemas: cannot open %s", filepath)
         return False
 
     modified = False
+
+    def _is_explicit(list_op):
+        """Return whether the list op is explicit (handles API variants)."""
+        # Houdini-bundled USD uses IsExplicit(), standalone usd-core uses
+        # the isExplicit property.
+        if hasattr(list_op, "IsExplicit"):
+            return list_op.IsExplicit()
+        return list_op.isExplicit
+
+    def _get_explicit_items(list_op):
+        """Return explicit items from the list op (handles API variants)."""
+        if hasattr(list_op, "GetExplicitItems"):
+            return list_op.GetExplicitItems()
+        return list_op.explicitItems
 
     def _visit(path):
         nonlocal modified
@@ -431,9 +450,9 @@ def fix_explicit_api_schemas(filepath):
             return
         list_op = spec.GetInfo("apiSchemas")
         # Only fix explicit list ops – prepend/append are fine
-        if not list_op.IsExplicit():
+        if not _is_explicit(list_op):
             return
-        items = list_op.IsExplicit() and list_op.GetExplicitItems()
+        items = _get_explicit_items(list_op)
         if not items:
             return
         fixed = Sdf.TokenListOp()
@@ -444,7 +463,7 @@ def fix_explicit_api_schemas(filepath):
     layer.Traverse("/", _visit)
 
     if modified:
-        layer.Save()
+        layer.Export(filepath)
         log.info(
             "fix_explicit_api_schemas: converted explicit apiSchemas "
             "to prepend in %s", filepath

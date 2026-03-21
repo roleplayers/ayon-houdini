@@ -62,17 +62,6 @@ class ExtractUSD(plugin.HoudiniExtractorPlugin):
         }
         instance.data["representations"].append(representation)
 
-        self.log.debug(
-            "DIAG: Added 'usd' representation to instance %s "
-            "(folderPath=%s, productName=%s, families=%s, "
-            "num_representations=%d)",
-            instance,
-            instance.data.get("folderPath"),
-            instance.data.get("productName"),
-            instance.data.get("families"),
-            len(instance.data.get("representations", []))
-        )
-
         # Fix explicit apiSchemas for look products. The USD ROP flattens
         # implicit layers which can convert composed prepend apiSchemas
         # into explicit list ops, breaking material bindings on GeomSubsets.
