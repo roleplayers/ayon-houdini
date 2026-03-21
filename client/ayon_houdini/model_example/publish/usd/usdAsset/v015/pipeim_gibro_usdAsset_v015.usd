@@ -1,0 +1,28 @@
+#usda 1.0
+(
+    defaultPrim = "gibro"
+    framesPerSecond = 24
+    metersPerUnit = 1
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+class "__class__"
+{
+    class "gibro"
+    {
+    }
+}
+
+def Xform "gibro" (
+    assetInfo = {
+        string identifier = "gibro/gibro.usd"
+        string name = "gibro"
+    }
+    prepend inherits = </__class__/gibro>
+    kind = "component"
+    prepend payload = @./payload.usd@
+)
+{
+}
+

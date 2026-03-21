@@ -1,0 +1,33 @@
+#usda 1.0
+(
+    defaultPrim = "gibro"
+    metersPerUnit = 1
+    subLayers = [
+        @Z:\JOBS\AyonStudio\Pipe_Improve\assets\character\gibro\publish\model\modelMain\v006\pipeim_gibro_modelMain_v006.usd:SDF_FORMAT_ARGS:layer_id=modelMain&order=0@
+    ]
+    upAxis = "Y"
+)
+
+def Xform "gibro" (
+    variants = {
+        string model = "Main"
+    }
+    prepend variantSets = "model"
+)
+{
+    variantSet "model" = {
+        "Main" (
+            prepend references = [
+                @Z:\JOBS\AyonStudio\Pipe_Improve\assets\character\gibro\publish\model\modelMain\v002\pipeim_gibro_modelMain_v002.usd@ (
+                    customData = {
+                        int ayon_order = 0
+                        string ayon_uri = "ayon://Pipe_Improve//assets/character/gibro?product=modelMain&version=2&representation=usd"
+                    }
+                )
+            ]
+        ) {
+
+        }
+    }
+}
+

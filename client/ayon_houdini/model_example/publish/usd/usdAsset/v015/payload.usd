@@ -1,0 +1,12 @@
+#usda 1.0
+(
+    defaultPrim = "gibro"
+    metersPerUnit = 1
+    subLayers = [
+        @Z:\JOBS\AyonStudio\Pipe_Improve\assets\character\gibro\publish\usd\usdAsset_rig\v002\pipeim_gibro_usdAsset_rig_v002.usd:SDF_FORMAT_ARGS:layer_id=rig&order=300@,
+        @Z:\JOBS\AyonStudio\Pipe_Improve\assets\character\gibro\publish\usd\usdAsset_look\v007\pipeim_gibro_usdAsset_look_v007.usd:SDF_FORMAT_ARGS:layer_id=look&order=200@,
+        @Z:\JOBS\AyonStudio\Pipe_Improve\assets\character\gibro\publish\usd\usdAsset_model\v006\pipeim_gibro_usdAsset_model_v006.usd:SDF_FORMAT_ARGS:layer_id=model&order=100@
+    ]
+    upAxis = "Y"
+)
+
